@@ -80,8 +80,7 @@ if __name__ == "__main__":
         per_device_eval_batch_size=16,  # Increased for GPU
         num_train_epochs=3,
         weight_decay=0.01,
-        push_to_hub=True,
-        hub_model_id="harpertoken/harpertokenNER",
+        push_to_hub=False,
         logging_dir=log_dir,
         logging_steps=50,
         save_strategy="epoch",
@@ -129,9 +128,6 @@ if __name__ == "__main__":
 
     # Example usage of process_batch function
     # result = process_batch(["Hello John"], ner_pipeline)
-
-    # Push the model to Hugging Face Model Hub
-    trainer.push_to_hub()
 
     # Close TensorBoard writer
     writer.close()
