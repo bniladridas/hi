@@ -128,3 +128,52 @@ jobs:
 
           print('All basic validations passed!')
           "
+
+  # Check for outdated Python dependencies
+  check-deps:
+    needs: model-validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - name: Check for outdated packages
+        run: pip list --outdated
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+      - name: Basic model validation
+        run: |
+          python -c "
+          # Test basic imports
+          from src.model import tokenize_and_align_labels
+          import torch
+          print('Model imports successful')
+
+          # Test transformers import
+          from transformers import AutoTokenizer
+          print('Transformers import successful')
+
+          # Test version import
+          from src import __version__
+          print('Version: ' + str(__version__))
+
+          # Test tensor operations
+          x = torch.tensor([1, 2, 3])
+          assert x.sum().item() == 6
+          print('PyTorch tensor operations work')
+
+          print('All basic validations passed!')
+          "
