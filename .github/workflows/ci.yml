@@ -73,7 +73,8 @@ jobs:
           docker run --rm test-model python -c \
             "import torch; print('PyTorch version:', torch.__version__)"
           docker run --rm test-model python -c \
-            "from src.model import tokenize_and_align_labels; print('Model import successful')"
+            "from src.model import tokenize_and_align_labels; \
+            print('Model import successful')"
 
           # Run tests inside container
           docker run --rm test-model pip install pytest
