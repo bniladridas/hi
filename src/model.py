@@ -13,16 +13,13 @@ from transformers import (
 )
 from transformers.integrations import TensorBoardCallback
 
+# Load the BERT tokenizer
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
 # Initialize TensorBoard
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 log_dir = f"runs/{timestamp}"
 writer = SummaryWriter(log_dir)
-
-# Load the CoNLL-2003 dataset
-dataset = load_dataset("conll2003")
-
-# Load the BERT tokenizer
-tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
 
 # Tokenize the dataset with padding and truncation
@@ -52,78 +49,80 @@ def tokenize_and_align_labels(examples):
     return tokenized_inputs
 
 
-tokenized_datasets = dataset.map(tokenize_and_align_labels, batched=True)
+if __name__ == "__main__":
+    # Load the CoNLL-2003 dataset
+    dataset = load_dataset("conll2003")
 
-# Load the pre-trained BERT model for token classification
-model = AutoModelForTokenClassification.from_pretrained(
-    "bert-base-uncased", num_labels=9
-)
+    tokenized_datasets = dataset.map(tokenize_and_align_labels, batched=True)
 
-# Enhanced Training Arguments optimized for GPU
-training_args = TrainingArguments(
-    output_dir="./results",
-    evaluation_strategy="epoch",
-    learning_rate=2e-5,
-    per_device_train_batch_size=16,  # Increased for GPU
-    per_device_eval_batch_size=16,  # Increased for GPU
-    num_train_epochs=3,
-    weight_decay=0.01,
-    push_to_hub=True,
-    hub_model_id="harpertoken/harpertokenNER",
-    logging_dir=log_dir,
-    logging_steps=50,
-    save_strategy="epoch",
-    save_total_limit=2,
-    warmup_steps=500,
-    gradient_accumulation_steps=4,  # Added for GPU optimization
-    report_to="tensorboard",
-    fp16=True,  # Enable mixed precision training
-)
+    # Load the pre-trained BERT model for token classification
+    model = AutoModelForTokenClassification.from_pretrained(
+        "bert-base-uncased", num_labels=9
+    )
 
-# Define the Trainer with TensorBoard callback
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=tokenized_datasets["train"],
-    eval_dataset=tokenized_datasets["validation"],
-    tokenizer=tokenizer,
-    callbacks=[TensorBoardCallback(writer)],
-)
+    # Enhanced Training Arguments optimized for GPU
+    training_args = TrainingArguments(
+        output_dir="./results",
+        evaluation_strategy="epoch",
+        learning_rate=2e-5,
+        per_device_train_batch_size=16,  # Increased for GPU
+        per_device_eval_batch_size=16,  # Increased for GPU
+        num_train_epochs=3,
+        weight_decay=0.01,
+        push_to_hub=True,
+        hub_model_id="harpertoken/harpertokenNER",
+        logging_dir=log_dir,
+        logging_steps=50,
+        save_strategy="epoch",
+        save_total_limit=2,
+        warmup_steps=500,
+        gradient_accumulation_steps=4,  # Added for GPU optimization
+        report_to="tensorboard",
+        fp16=True,  # Enable mixed precision training
+    )
 
-# Train the model with progress monitoring
-print("Starting training...")
-trainer.train()
+    # Define the Trainer with TensorBoard callback
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=tokenized_datasets["train"],
+        eval_dataset=tokenized_datasets["validation"],
+        tokenizer=tokenizer,
+        callbacks=[TensorBoardCallback(writer)],
+    )
 
-# Evaluate the model
-print("Evaluating model...")
-metrics = trainer.evaluate()
-print("Evaluation metrics:", metrics)
+    # Train the model with progress monitoring
+    print("Starting training...")
+    trainer.train()
 
-# Save model locally
-model_save_path = "./ner_model"
-os.makedirs(model_save_path, exist_ok=True)
-model.save_pretrained(model_save_path)
-tokenizer.save_pretrained(model_save_path)
-print(f"Model saved locally at {model_save_path}")
+    # Evaluate the model
+    print("Evaluating model...")
+    metrics = trainer.evaluate()
+    print("Evaluation metrics:", metrics)
 
-# Create inference pipeline
-ner_pipeline = pipeline(
-    "ner",
-    model=model,
-    tokenizer=tokenizer,
-    device=0 if torch.cuda.is_available() else -1,
-    aggregation_strategy="simple",
-)
+    # Save model locally
+    model_save_path = "./ner_model"
+    os.makedirs(model_save_path, exist_ok=True)
+    model.save_pretrained(model_save_path)
+    tokenizer.save_pretrained(model_save_path)
+    print(f"Model saved locally at {model_save_path}")
 
+    # Create inference pipeline
+    ner_pipeline = pipeline(
+        "ner",
+        model=model,
+        tokenizer=tokenizer,
+        device=0 if torch.cuda.is_available() else -1,
+        aggregation_strategy="simple",
+    )
 
-# Example batch processing function
-def process_batch(texts):
-    return ner_pipeline(texts, batch_size=16)
+    # Example batch processing function
+    def process_batch(texts):
+        return ner_pipeline(texts, batch_size=16)
 
+    # Push the model to Hugging Face Model Hub
+    trainer.push_to_hub()
 
-# Push the model to Hugging Face Model Hub
-trainer.push_to_hub()
-
-# Close TensorBoard writer
-writer.close()
-print("Training complete!")
+    # Close TensorBoard writer
+    writer.close()
+    print("Training complete!")
