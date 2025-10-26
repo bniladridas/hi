@@ -9,12 +9,6 @@ description = "Fine-tunes BERT for Named Entity Recognition (NER) on CoNLL-2003 
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.8"
-authors = [
-    {name = "Your Name", email = "your.email@example.com"},
-]
-maintainers = [
-    {name = "Your Name", email = "your.email@example.com"},
-]
 keywords = ["nlp", "ner", "bert", "transformers", "pytorch", "machine-learning"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -54,16 +48,9 @@ docs = [
     "sphinx>=5.0.0",
     "sphinx-rtd-theme>=1.2.0",
 ]
-all = [
-    "token-classification-model[dev,docs]",
-]
-
-[project.urls]
-Homepage = "https://github.com/yourusername/token-classification-model"
-Repository = "https://github.com/yourusername/token-classification-model"
-Issues = "https://github.com/yourusername/token-classification-model/issues"
-Documentation = "https://token-classification-model.readthedocs.io/"
-
+ all = [
+     "token-classification-model[dev,docs]",
+ ]
 [project.scripts]
 token-classification = "src.model:main"
 
