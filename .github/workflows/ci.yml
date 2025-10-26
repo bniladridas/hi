@@ -23,6 +23,7 @@ jobs:
 
   # Unit tests
   test:
+    needs: pre-commit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,6 +48,7 @@ jobs:
 
   # Docker build and test
   docker:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -82,6 +84,7 @@ jobs:
 
   # Model validation (lightweight)
   model-validation:
+    needs: docker
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
