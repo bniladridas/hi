@@ -1,11 +1,17 @@
-from transformers import AutoTokenizer, AutoModelForTokenClassification, Trainer, TrainingArguments, pipeline
-from datasets import load_dataset, load_metric
-import torch
-from torch.utils.tensorboard import SummaryWriter
-from transformers.integrations import TensorBoardCallback
 import os
-import numpy as np
 from datetime import datetime
+
+import torch
+from datasets import load_dataset
+from torch.utils.tensorboard import SummaryWriter
+from transformers import (
+    AutoModelForTokenClassification,
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments,
+    pipeline,
+)
+from transformers.integrations import TensorBoardCallback
 
 # Initialize TensorBoard
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -18,14 +24,15 @@ dataset = load_dataset("conll2003")
 # Load the BERT tokenizer
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
+
 # Tokenize the dataset with padding and truncation
 def tokenize_and_align_labels(examples):
     tokenized_inputs = tokenizer(
-        examples["tokens"], 
-        truncation=True, 
-        padding="max_length", 
+        examples["tokens"],
+        truncation=True,
+        padding="max_length",
         max_length=128,
-        is_split_into_words=True
+        is_split_into_words=True,
     )
     labels = []
     for i, label in enumerate(examples["ner_tags"]):
@@ -44,10 +51,13 @@ def tokenize_and_align_labels(examples):
     tokenized_inputs["labels"] = labels
     return tokenized_inputs
 
+
 tokenized_datasets = dataset.map(tokenize_and_align_labels, batched=True)
 
 # Load the pre-trained BERT model for token classification
-model = AutoModelForTokenClassification.from_pretrained("bert-base-uncased", num_labels=9)
+model = AutoModelForTokenClassification.from_pretrained(
+    "bert-base-uncased", num_labels=9
+)
 
 # Enhanced Training Arguments optimized for GPU
 training_args = TrainingArguments(
@@ -55,7 +65,7 @@ training_args = TrainingArguments(
     evaluation_strategy="epoch",
     learning_rate=2e-5,
     per_device_train_batch_size=16,  # Increased for GPU
-    per_device_eval_batch_size=16,   # Increased for GPU
+    per_device_eval_batch_size=16,  # Increased for GPU
     num_train_epochs=3,
     weight_decay=0.01,
     push_to_hub=True,
@@ -67,7 +77,7 @@ training_args = TrainingArguments(
     warmup_steps=500,
     gradient_accumulation_steps=4,  # Added for GPU optimization
     report_to="tensorboard",
-    fp16=True  # Enable mixed precision training
+    fp16=True,  # Enable mixed precision training
 )
 
 # Define the Trainer with TensorBoard callback
@@ -77,7 +87,7 @@ trainer = Trainer(
     train_dataset=tokenized_datasets["train"],
     eval_dataset=tokenized_datasets["validation"],
     tokenizer=tokenizer,
-    callbacks=[TensorBoardCallback(writer)]
+    callbacks=[TensorBoardCallback(writer)],
 )
 
 # Train the model with progress monitoring
@@ -102,12 +112,14 @@ ner_pipeline = pipeline(
     model=model,
     tokenizer=tokenizer,
     device=0 if torch.cuda.is_available() else -1,
-    aggregation_strategy="simple"
+    aggregation_strategy="simple",
 )
+
 
 # Example batch processing function
 def process_batch(texts):
     return ner_pipeline(texts, batch_size=16)
+
 
 # Push the model to Hugging Face Model Hub
 trainer.push_to_hub()
