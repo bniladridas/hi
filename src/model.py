@@ -121,8 +121,8 @@ if __name__ == "__main__":
     # Create inference pipeline
     ner_pipeline = pipeline(
         "ner",
-        model=model,
-        tokenizer=tokenizer,
+        model=model_save_path,
+        tokenizer=model_save_path,
         device=0 if torch.cuda.is_available() else -1,
         aggregation_strategy="simple",
     )

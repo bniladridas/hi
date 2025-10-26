@@ -101,8 +101,8 @@ jobs:
 
           # Test tokenization function
           examples = {'tokens': [['Hello', 'world']], 'ner_tags': [[0, 1]]}
-          result = tokenize_and_align_labels(examples, \
-            lambda x: torch.tensor([[101, 102, 103, 102]]))
+           result = tokenize_and_align_labels(examples, \
+             lambda x, **kwargs: torch.tensor([[101, 102, 103, 102]]))
           assert 'labels' in result
           print('Tokenization function works')
 
