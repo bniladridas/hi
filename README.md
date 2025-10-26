@@ -83,6 +83,23 @@ docker-compose run --rm model-training
 - **Dataset**: CoNLL-2003
 - **Labels**: 9 NER tags
 
+## Pushing to Hugging Face Hub
+
+To push the trained model to Hugging Face Hub:
+
+1. Set your Hugging Face token as an environment variable:
+   ```bash
+   export HF_TOKEN=your_huggingface_token_here
+   ```
+
+2. Modify `src/model.py` to enable pushing:
+   - Change `push_to_hub=False` to `push_to_hub=True`
+   - Add `hub_model_id="harpertoken/harpertokenNER"`
+
+3. Run the training script.
+
+The model will be available at: https://huggingface.co/harpertoken/harpertokenNER
+
 ## Inference
 
 ```python
