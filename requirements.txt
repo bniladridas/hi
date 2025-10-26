@@ -1,5 +1,10 @@
+# Core ML libraries
 torch>=2.0.0
 datasets>=2.10.0
 transformers>=4.20.0
+pyarrow>=8.0.0,<15.0.0
+numpy<2
+
+# Testing
 pytest>=7.0.0
 pytest-cov>=4.0.0
