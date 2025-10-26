@@ -12,7 +12,7 @@ python src/model.py
 
 ```python
 from transformers import pipeline
-ner = pipeline("token-classification", model="bniladridas/token-classification-ai-fine-tune")
+ner = pipeline("token-classification", model="harpertoken/harpertokenNER")
 print(ner("Apple is buying a U.K. startup for $1 billion"))
 ```
 
