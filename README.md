@@ -21,7 +21,7 @@ docker run --rm token-classification-model
 # Setup
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -e .[dev]
 
 # Run training
 python src/model.py

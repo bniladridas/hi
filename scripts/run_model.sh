@@ -33,7 +33,7 @@ else
     # Install dependencies if needed
     if [ ! -f "venv/installed" ]; then
         echo -e "${BLUE}Installing dependencies...${NC}"
-        pip install -r requirements.txt
+        pip install -e .[dev]
         touch venv/installed
     fi
 
