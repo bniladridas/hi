@@ -13,10 +13,10 @@ if echo "$first_line" | grep -qP '\p{Emoji}'; then
     exit 1
 fi
 
-# Check if it matches conventional commit: type(scope): lowercase description >=40 chars
-if ! echo "$first_line" | grep -qE '^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: [a-z].{39,}$'; then
+# Check if it matches conventional commit: type(scope): lowercase description <=40 chars
+if ! echo "$first_line" | grep -qE '^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: [a-z].{0,39}$'; then
     echo -e "\033[31mCommit message does not follow conventional commit format.\033[0m"
-    echo -e "\033[33mFormat: type(scope): lowercase description (≥40 chars)\033[0m"
+    echo -e "\033[33mFormat: type(scope): lowercase description (≤40 chars)\033[0m"
     echo -e "\033[33mAllowed types: feat, fix, docs, style, refactor, test, chore\033[0m"
     exit 1
 fi
