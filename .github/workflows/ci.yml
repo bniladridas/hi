@@ -1,107 +1,111 @@
+---
 name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   # Pre-commit checks
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
-    - name: Install pre-commit
-      run: pip install pre-commit
-    - name: Run pre-commit
-      run: pre-commit run --all-files
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run pre-commit
+        run: pre-commit run --all-files
 
   # Unit tests
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Run tests
-      run: |
-        pip install pytest pytest-cov
-        pytest --cov=src --cov-report=xml
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          pip install pytest pytest-cov
+          pytest --cov=src --cov-report=xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
 
   # Docker build and test
   docker:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Build Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        push: false
-        tags: token-classification-model:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: token-classification-model:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-    - name: Test Docker image
-      run: |
-        # Build the image
-        docker build -t test-model .
+      - name: Test Docker image
+        run: |
+          # Build the image
+          docker build -t test-model .
 
-        # Test that the container can start and run basic commands
-        docker run --rm test-model python -c "import torch; print('PyTorch version:', torch.__version__)"
-        docker run --rm test-model python -c "from src.model import tokenize_and_align_labels; print('Model import successful')"
+          # Test that the container can start and run basic commands
+          docker run --rm test-model python -c \
+            "import torch; print('PyTorch version:', torch.__version__)"
+          docker run --rm test-model python -c \
+            "from src.model import tokenize_and_align_labels; print('Model import successful')"
 
-        # Run tests inside container
-        docker run --rm test-model pip install pytest
-        docker run --rm test-model pytest tests/ -v
+          # Run tests inside container
+          docker run --rm test-model pip install pytest
+          docker run --rm test-model pytest tests/ -v
 
   # Model validation (lightweight)
   model-validation:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Basic model validation
-      run: |
-        python -c "
-        from src.model import tokenize_and_align_labels
-        import torch
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Basic model validation
+        run: |
+          python -c "
+          from src.model import tokenize_and_align_labels
+          import torch
 
-        # Test tokenization function
-        examples = {'tokens': [['Hello', 'world']], 'ner_tags': [[0, 1]]}
-        result = tokenize_and_align_labels(examples, lambda x: torch.tensor([[101, 102, 103, 102]]))
-        assert 'labels' in result
-        print('✓ Tokenization function works')
+          # Test tokenization function
+          examples = {'tokens': [['Hello', 'world']], 'ner_tags': [[0, 1]]}
+          result = tokenize_and_align_labels(examples, \
+            lambda x: torch.tensor([[101, 102, 103, 102]]))
+          assert 'labels' in result
+          print('Tokenization function works')
 
-        # Test version import
-        from src import __version__
-        print(f'✓ Version: {__version__}')
-        "
+          # Test version import
+          from src import __version__
+          print(f'Version: {__version__}')
+          "
