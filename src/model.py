@@ -1,4 +1,5 @@
 import os
+import warnings
 from datetime import datetime
 
 import torch
@@ -11,7 +12,8 @@ from transformers import (
     TrainingArguments,
     pipeline,
 )
-from transformers.integrations import TensorBoardCallback
+
+warnings.filterwarnings("ignore")
 
 # Tokenizer and TensorBoard will be initialized in main block
 
@@ -60,7 +62,7 @@ if __name__ == "__main__":
     writer = SummaryWriter(log_dir)
 
     # Load the CoNLL-2003 dataset
-    dataset = load_dataset("conll2003")
+    dataset = load_dataset("conll2003", trust_remote_code=True)
 
     tokenized_datasets = dataset.map(
         lambda examples: tokenize_and_align_labels(examples, tokenizer), batched=True
@@ -91,14 +93,13 @@ if __name__ == "__main__":
         fp16=True,  # Enable mixed precision training
     )
 
-    # Define the Trainer with TensorBoard callback
+    # Define the Trainer
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=tokenized_datasets["train"],
         eval_dataset=tokenized_datasets["validation"],
         tokenizer=tokenizer,
-        callbacks=[TensorBoardCallback(writer)],
     )
 
     # Train the model with progress monitoring
