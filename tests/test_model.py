@@ -1,6 +1,5 @@
 from unittest.mock import MagicMock, patch
 
-
 from src.model import (
     AutoModelForTokenClassification,
     Trainer,
