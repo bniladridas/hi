@@ -85,20 +85,9 @@ docker-compose run --rm model-training
 
 ## Pushing to Hugging Face Hub
 
-To push the trained model to Hugging Face Hub:
+Set `HF_TOKEN` env var, change `push_to_hub=True` and add `hub_model_id="harpertoken/harpertokenNER"` in `src/model.py`, then run training.
 
-1. Set your Hugging Face token as an environment variable:
-   ```bash
-   export HF_TOKEN=your_huggingface_token_here
-   ```
-
-2. Modify `src/model.py` to enable pushing:
-   - Change `push_to_hub=False` to `push_to_hub=True`
-   - Add `hub_model_id="harpertoken/harpertokenNER"`
-
-3. Run the training script.
-
-The model will be available at: https://huggingface.co/harpertoken/harpertokenNER
+Model URL: https://huggingface.co/harpertoken/harpertokenNER
 
 ## Inference
 
