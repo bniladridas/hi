@@ -48,10 +48,10 @@ repos:
   # Basic file checks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
-    hooks:
-      - id: check-yaml
-        args: [--allow-multiple-documents, --unsafe]
-      - id: end-of-file-fixer
-        exclude: \.min\.(js|css)$
+     hooks:
+       - id: check-yaml
+         args: [--allow-multiple-documents, --unsafe]
+       - id: end-of-file-fixer
+         exclude: \.min\.(js|css)$
        - id: trailing-whitespace
          args: []

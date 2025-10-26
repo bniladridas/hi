@@ -139,6 +139,9 @@ Thumbs.db
 *.pb
 *.onnx
 
+# TensorBoard logs
+runs/
+
 # Datasets
 data/
 datasets/

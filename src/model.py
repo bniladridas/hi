@@ -13,17 +13,13 @@ from transformers import (
 )
 from transformers.integrations import TensorBoardCallback
 
-# Load the BERT tokenizer
-tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-
-# Initialize TensorBoard
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-log_dir = f"runs/{timestamp}"
-writer = SummaryWriter(log_dir)
+# Tokenizer and TensorBoard will be initialized in main block
 
 
 # Tokenize the dataset with padding and truncation
-def tokenize_and_align_labels(examples):
+def tokenize_and_align_labels(examples, tokenizer=None):
+    if tokenizer is None:
+        raise ValueError("tokenizer must be provided")
     tokenized_inputs = tokenizer(
         examples["tokens"],
         truncation=True,
@@ -49,11 +45,26 @@ def tokenize_and_align_labels(examples):
     return tokenized_inputs
 
 
+# Example batch processing function
+def process_batch(texts, ner_pipeline):
+    return ner_pipeline(texts, batch_size=16)
+
+
 if __name__ == "__main__":
+    # Load the BERT tokenizer
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+    # Initialize TensorBoard
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_dir = f"runs/{timestamp}"
+    writer = SummaryWriter(log_dir)
+
     # Load the CoNLL-2003 dataset
     dataset = load_dataset("conll2003")
 
-    tokenized_datasets = dataset.map(tokenize_and_align_labels, batched=True)
+    tokenized_datasets = dataset.map(
+        lambda examples: tokenize_and_align_labels(examples, tokenizer), batched=True
+    )
 
     # Load the pre-trained BERT model for token classification
     model = AutoModelForTokenClassification.from_pretrained(
@@ -63,7 +74,7 @@ if __name__ == "__main__":
     # Enhanced Training Arguments optimized for GPU
     training_args = TrainingArguments(
         output_dir="./results",
-        evaluation_strategy="epoch",
+        eval_strategy="epoch",
         learning_rate=2e-5,
         per_device_train_batch_size=16,  # Increased for GPU
         per_device_eval_batch_size=16,  # Increased for GPU
@@ -116,9 +127,8 @@ if __name__ == "__main__":
         aggregation_strategy="simple",
     )
 
-    # Example batch processing function
-    def process_batch(texts):
-        return ner_pipeline(texts, batch_size=16)
+    # Example usage of process_batch function
+    # result = process_batch(["Hello John"], ner_pipeline)
 
     # Push the model to Hugging Face Model Hub
     trainer.push_to_hub()
