@@ -7,10 +7,16 @@ commit_msg=$(cat $commit_msg_file)
 # Get first line
 first_line=$(echo "$commit_msg" | head -1)
 
-# Check if it matches conventional commit: type(scope): lowercase description <=40 chars
-if ! echo "$first_line" | grep -qE '^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: [a-z].{0,39}$'; then
-    echo "Commit message does not follow conventional commit format."
-    echo "Format: type(scope): lowercase description (≤40 chars)"
-    echo "Allowed types: feat, fix, docs, style, refactor, test, chore"
+# Check for emojis
+if echo "$first_line" | grep -qP '\p{Emoji}'; then
+    echo -e "\033[31mCommit message contains emojis.\033[0m"
+    exit 1
+fi
+
+# Check if it matches conventional commit: type(scope): lowercase description >=40 chars
+if ! echo "$first_line" | grep -qE '^(feat|fix|docs|style|refactor|test|chore)(\(.+\))?: [a-z].{39,}$'; then
+    echo -e "\033[31mCommit message does not follow conventional commit format.\033[0m"
+    echo -e "\033[33mFormat: type(scope): lowercase description (≥40 chars)\033[0m"
+    echo -e "\033[33mAllowed types: feat, fix, docs, style, refactor, test, chore\033[0m"
     exit 1
 fi
