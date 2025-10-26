@@ -72,7 +72,7 @@ docker-compose run --rm model-training
 ├── .github/workflows/  # CI pipeline
 ├── Dockerfile          # Container
 ├── docker-compose.yml  # Local dev
-├── requirements.txt    # Dependencies
+├── pyproject.toml      # Modern Python packaging
 └── VERSION            # Version tracking
 ```
 
